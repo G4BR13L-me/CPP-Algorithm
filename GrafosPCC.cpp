@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
-using namespace std;  
+using namespace std;
+using namespace std::chrono;   
 
 class Grafo 
 { 
@@ -28,7 +29,6 @@ class Grafo
             if(hasCicloEuleriano())
                 printCicloEuleriano(start);
             else {
-                cout << "Não Euleriano" << endl;
                 emparelhamentoMinimo();
                 printCicloEuleriano(start);
             }
@@ -74,71 +74,10 @@ class Grafo
             dijkstra(0, V-1, dist, antecessor);
 
             vector<int> impar = verticesImpar();
-            //percorrer os V de grau impar com heuristica do vizinho mais prox
+           
             vector<pair<int,int>> emp = emparelhar(impar, dist);
 
             adicionarArestas(emp, dist, antecessor);
-        }
-
-        void adicionarArestas(vector<pair<int,int>> e, int dist[], int ant[])
-        {
-            int aux;
-            for (int i = 0; i < e.size(); i++)
-            {
-                if(e[i].first > e[i].second){
-                    aux = e[i].first;
-                    while (aux != e[i].second)
-                    {
-                        addAresta(aux, ant[aux]);
-                        aux = ant[aux];
-                    }
-                }else{
-                    aux = e[i].second;
-                    while (aux != e[i].first)
-                    {
-                        addAresta(aux, ant[aux]);
-                        aux = ant[aux];
-                    }
-                }
-            }
-        }
-
-        vector<int> verticesImpar()
-        {
-            vector<int> impar;
-            for (int v = 0; v < V; v++)
-            {
-                if(adj[v].size() % 2 != 0)
-                    impar.push_back(v);
-            }
-            return impar;
-        }
-
-        vector<pair<int,int>> emparelhar(vector<int>impar, int dist[])
-        {
-            vector<pair<int,int>> emparelhamento;
-            vector<bool> visitado(impar.size(), false);
-            int min = INT32_MAX;
-            int aux;
-
-            for (int i = 0; i < impar.size(); i++)
-            {
-                min = INT32_MAX;
-                if(!visitado[i]){
-                    for (int j = 0; j < impar.size(); j++)
-                    {
-                        if(j != i && dist[j]<min && !visitado[j]){
-                            min = dist[j];
-                            aux = j;
-                        }
-                    }
-                    visitado[i] = true;
-                    visitado[aux] = true;
-                    emparelhamento.push_back(make_pair(impar[i],impar[aux]));
-                }
-            }
-            
-            return emparelhamento;
         }
 
         void dijkstra(int orig, int dest,int dist[], int ant[])
@@ -184,13 +123,12 @@ class Grafo
                 }
             }
         }
+
         
-        void printGrafo();
     private:
         bool isArestaValida(int u, int v, int peso)
         {  
-            // 1) If v is the only adjacent vertex of u 
-            int count = 0;  // To store count of adjacent vertices 
+            int count = 0;  
             list<pair<int,int>>::iterator i; 
             for (i = adj[u].begin(); i != adj[u].end(); ++i) 
                 if ((i->first) != -1) 
@@ -243,37 +181,80 @@ class Grafo
             
             return soma;
         }
-}; 
-   
 
-void Grafo::printGrafo() 
-{
-    list<pair<int,int>>::iterator i;
-    int v;
-    for(int u = 0; u < V; u++){
-        cout << "Vertice " << u << ":\n";
-        for (i = adj[u].begin(); i != adj[u].end(); i++) 
-        { 
-            v = i->first; 
-            cout << v << " ";   
+        vector<int> verticesImpar()
+        {
+            vector<int> impar;
+            for (int v = 0; v < V; v++)
+            {
+                if(adj[v].size() % 2 != 0)
+                    impar.push_back(v);
+            }
+            return impar;
         }
-        cout << "\n";
-    }
-}
+
+        vector<pair<int,int>> emparelhar(vector<int>impar, int dist[])
+        {
+            vector<pair<int,int>> emparelhamento;
+            vector<bool> visitado(impar.size(), false);
+            int min = INT32_MAX;
+            int aux;
+
+            for (int i = 0; i < impar.size(); i++)
+            {
+                min = INT32_MAX;
+                if(!visitado[i]){
+                    for (int j = 0; j < impar.size(); j++)
+                    {
+                        if(j != i && dist[j]<min && !visitado[j]){
+                            min = dist[j];
+                            aux = j;
+                        }
+                    }
+                    visitado[i] = true;
+                    visitado[aux] = true;
+                    emparelhamento.push_back(make_pair(impar[i],impar[aux]));
+                }
+            }
+            
+            return emparelhamento;
+        }
+
+        void adicionarArestas(vector<pair<int,int>> e, int dist[], int ant[])
+        {
+            int aux;
+            for (int i = 0; i < e.size(); i++)
+            {
+                dijkstra(e[i].first,e[i].second,dist,ant);
+            
+                aux = e[i].second;
+                while (aux != e[i].first)
+                {
+                    addAresta(aux, ant[aux]);
+                    aux = ant[aux];
+                }
+                
+            }
+        }
+}; 
 
 int main() 
-{ 
+{  
+    auto inicio = high_resolution_clock::now(); 
+ 
     Grafo g1(4); 
     g1.addAresta(0, 1, 10); 
     g1.addAresta(0, 2, 5); 
     g1.addAresta(1, 2, 6); 
-    g1.addAresta(2, 3, 7); 
+    g1.addAresta(2, 3, 7);
+    cout << "Grafo 1:" << endl;
     g1.PCC(0); 
 
     Grafo g2(3); 
     g2.addAresta(0, 1, 1); 
     g2.addAresta(1, 2, 2); 
-    g2.addAresta(2, 0, 3); 
+    g2.addAresta(2, 0, 3);
+    cout << "Grafo 2:" << endl;
     g2.PCC(0); 
 
     Grafo g3(5); 
@@ -284,8 +265,29 @@ int main()
     g3.addAresta(3, 4, 5); 
     g3.addAresta(3, 2, 6); 
     g3.addAresta(3, 1, 7); 
-    g3.addAresta(2, 4, 8); 
-    g3.PCC(0); 
+    g3.addAresta(2, 4, 8);
+    cout << "Grafo 3:" << endl;
+    g3.PCC(0);
+
+    Grafo g4(5); 
+    g4.addAresta(0, 1, 6); 
+    g4.addAresta(0, 2, 3); 
+    g4.addAresta(0, 4, 7); 
+    g4.addAresta(1, 2, 2); 
+    g4.addAresta(1, 3, 8); 
+    g4.addAresta(2, 3, 1); 
+    g4.addAresta(2, 4, 4); 
+    g4.addAresta(3, 4, 2);
+    cout << "Grafo 4:" << endl;
+    g4.PCC(0); 
+  
+    auto fim = high_resolution_clock::now(); 
+   
+    double tempo = duration_cast<nanoseconds>(fim - inicio).count(); 
+  
+    tempo *= 1e-6; 
+
+    printf("Tempo de execução: %.9lf ms",tempo);
 
     return 0; 
 }
